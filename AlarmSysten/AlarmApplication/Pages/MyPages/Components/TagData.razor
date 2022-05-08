@@ -1,0 +1,101 @@
+﻿@page "/TagData"
+
+@using DataAccesLib
+@using DataAccesLib.Models
+@using BlazorDateRangePicker;
+@using System.Diagnostics
+
+@inject IRecipeData _db
+@inject IConfiguration _config
+
+
+<h1>TagData</h1>
+
+
+<h5 class ="mx-5">&nbsp;&nbsp;&nbsp; Dato &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Antall Rader</h5>
+
+
+
+ <TableSortComp rangeQuery="@UpdateDateRange"></TableSortComp>
+
+<Tables filter="@filter" TableType="@TableType"></Tables>
+
+@*<CsvAndResetComponent TableRestart="@UpdateResetTable"></CsvAndResetComponent>
+
+<FilterButtons FilterSort="@filter" FilterSortUpdate="@UpdateFilter"></FilterButtons>*@
+
+}
+
+
+
+@code {
+
+    private int TableLen = Queries.TableLen;
+
+    private int nColumns = 5;
+    private string TableType = "Tags";
+
+    private List<RecipeModels> recipes;
+    private RecipeModels RecipeEdit = new RecipeModels();
+
+    public filtering[] filter = new filtering[5];
+    public DataFormatter format = new DataFormatter();
+    public List<List<string>> TableList = new List<List<string>>();
+    private string PIX318Table;
+
+    QueriesV1 query = new QueriesV1();
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        PIX318Table = _config.GetSection("Tables").GetSection("TagData").Value;
+        query.SetTableType(TableType);
+        for(int i = 0; i < nColumns; i++)
+        {
+            filter[i] = new filtering();
+            filter[i].variable = Extensions.TagDataExtensions[i];
+        }
+
+      
+
+
+    }
+
+    public async void TableUpdate()
+    {
+        List<TagLog> TagData = new List<TagLog>();
+            TagData = await _db.GetTags(query.TableUpdate());
+            TableList = format.Tags(TagData);
+            Debug.WriteLine(TableList[0][0]);
+            RecipeRead.TableList = TableList;
+        
+        try
+        {
+            StateHasChanged();
+        }
+        catch
+        {
+            
+        }
+        
+
+    }
+
+    private void UpdateFilter(filtering[] _filter)
+    {
+        filter = _filter;
+    }
+
+
+    private void UpdateDateRange(string sql)
+    {
+        TableUpdate();
+    }
+
+    private void UpdateResetTable(string sql)
+    {
+        TableUpdate();
+    }
+}

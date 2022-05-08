@@ -1,0 +1,32 @@
+﻿@using DataAccesLib.Models
+
+
+<div class="btn-group  text-rt" role="group" aria-label="Reset">
+        
+        <button type="button" class="btn btn-secondary btn-lg text-right" @onclick="() => resetTable()">Reset Tabell</button>
+    </div>
+
+
+@code {
+
+    Queries query = new Queries();
+    [Parameter]
+    public EventCallback<string> TableRestart { get; set; }
+
+
+    public void WriteCSV(filtering[] filter)
+    {
+        //DataWrite ToCSV = new DataWrite(filter);
+        //TableUpdate();
+        //ToCSV.dataWriteToCSV();
+
+    }
+
+
+    public async Task resetTable()
+    {
+        string sql = query.TableReset();
+        await TableRestart.InvokeAsync(sql);
+        StateHasChanged();
+    }
+}

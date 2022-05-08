@@ -1,0 +1,2 @@
+INSERT INTO TAG_DATA (TimeStamp, TagId, Value)
+VALUES (GETDATE(), 1, 12)

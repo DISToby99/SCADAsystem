@@ -1,0 +1,6 @@
+INSERT INTO SEVERITY_CONFIGURATION 
+VALUES	('clear', 0),
+		('Low', 100),
+		('Medium', 200),
+		('High', 300),
+		('Critical', 499);

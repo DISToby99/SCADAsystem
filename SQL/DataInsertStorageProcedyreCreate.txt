@@ -1,0 +1,16 @@
+CREATE PROCEDURE DataInsert @TagId INTEGER, @Value FLOAT
+as 
+DECLARE @RowCntAlarmConfig INTEGER = 0;
+DECLARE @RowCntAlarms INTEGER = 0;
+DECLARE @AlarmConfigID INTEGER = 1;
+DECLARE @AlarmId INTEGER = 0;
+--DECLARE @AcknowledgeTimeStamp DATETIME = ;
+
+SELECT @RowCntAlarmConfig = COUNT(0) FROM ALARM_CONFIGURATION;
+SELECT @RowCntAlarms = COUNT(0) FROM ALARM_DATA;
+
+
+	INSERT INTO TAG_DATA (TimeStamp, Value, Quality, Status, TagId)
+	VALUES (GETDATE(), @Value, 1, 1, @TagId)
+
+	EXEC AlarmManagement @TagId = @TagId, @Value = @ValueagId) 

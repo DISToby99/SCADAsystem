@@ -1,0 +1,126 @@
+CREATE TABLE [ALARM_CONFIGURATION]
+( 
+	[AlarmId]            int  IDENTITY ( 1,1 )  NOT NULL ,
+	[TagId]              integer  NULL ,
+	[AlarmType]          char(18)  NULL ,
+	[AlarmDescription]   char(18)  NULL ,
+	[SeverityName]       char(18)  NOT NULL ,
+	[Disable]            bit  NULL ,
+	[Value]              float  NULL 
+)
+go
+
+CREATE TABLE [ALARM_DATA]
+( 
+	[AlarmId]            int  NOT NULL ,
+	[ActivationTimeStamp] datetime  NOT NULL ,
+	[AcknowledgeTimeStamp] datetime  NULL ,
+	[AcknowledgeOperator] char(18)  NULL ,
+	[Silence]            bit  NULL ,
+	[SeverityName]       char(18)  NULL ,
+	[Acknowledge]        bit  NULL ,
+	[Active]             bit  NULL 
+)
+go
+
+CREATE TABLE [ALARM_TYPE]
+( 
+	[AlarmType]          char(18)  NOT NULL 
+)
+go
+
+CREATE TABLE [SEVERITY_CONFIGURATION]
+( 
+	[SeverityName]       char(18)  NOT NULL ,
+	[SeverityLevel]      integer  NULL 
+)
+go
+
+CREATE TABLE [TAG_CONFIGURATION]
+( 
+	[TagId]              integer  NOT NULL ,
+	[TagName]            char(18)  NULL ,
+	[ItemId]             char(18)  NULL ,
+	[ItemURL]            char(50)  NULL ,
+	[Description]        char(50)  NULL 
+)
+go
+
+CREATE TABLE [TAG_DATA]
+( 
+	[TimeStamp]          datetime  NOT NULL ,
+	[Value]              float  NULL ,
+	[Quality]            bit  NULL ,
+	[Status]             bit  NULL ,
+	[TagId]              integer  NOT NULL 
+)
+go
+
+ALTER TABLE [ALARM_CONFIGURATION]
+	ADD CONSTRAINT [XPKALARM_CONFIGURATION] PRIMARY KEY  CLUSTERED ([AlarmId] ASC)
+go
+
+ALTER TABLE [ALARM_DATA]
+	ADD CONSTRAINT [XPKALARM_DATA] PRIMARY KEY  CLUSTERED ([AlarmId] ASC,[ActivationTimeStamp] ASC)
+go
+
+ALTER TABLE [ALARM_TYPE]
+	ADD CONSTRAINT [XPKALARM_TYPE] PRIMARY KEY  CLUSTERED ([AlarmType] ASC)
+go
+
+ALTER TABLE [SEVERITY_CONFIGURATION]
+	ADD CONSTRAINT [XPKSEVERITY_CONFIGURATION] PRIMARY KEY  CLUSTERED ([SeverityName] ASC)
+go
+
+ALTER TABLE [TAG_CONFIGURATION]
+	ADD CONSTRAINT [XPKTAG_CONFIGURATION] PRIMARY KEY  CLUSTERED ([TagId] ASC)
+go
+
+ALTER TABLE [TAG_DATA]
+	ADD CONSTRAINT [XPKTAG_DATA] PRIMARY KEY  CLUSTERED ([TimeStamp] ASC,[TagId] ASC)
+go
+
+
+ALTER TABLE [ALARM_CONFIGURATION]
+	ADD CONSTRAINT [R_4] FOREIGN KEY ([SeverityName]) REFERENCES [SEVERITY_CONFIGURATION]([SeverityName])
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+ALTER TABLE [ALARM_CONFIGURATION]
+	ADD CONSTRAINT [R_7] FOREIGN KEY ([SeverityName]) REFERENCES [SEVERITY_CONFIGURATION]([SeverityName])
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+ALTER TABLE [ALARM_CONFIGURATION]
+	ADD CONSTRAINT [R_9] FOREIGN KEY ([AlarmType]) REFERENCES [ALARM_TYPE]([AlarmType])
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+ALTER TABLE [ALARM_CONFIGURATION]
+	ADD CONSTRAINT [R_11] FOREIGN KEY ([TagId]) REFERENCES [TAG_CONFIGURATION]([TagId])
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+
+ALTER TABLE [ALARM_DATA]
+	ADD CONSTRAINT [R_3] FOREIGN KEY ([AlarmId]) REFERENCES [ALARM_CONFIGURATION]([AlarmId])
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+ALTER TABLE [ALARM_DATA]
+	ADD CONSTRAINT [R_8] FOREIGN KEY ([SeverityName]) REFERENCES [SEVERITY_CONFIGURATION]([SeverityName])
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+
+ALTER TABLE [TAG_DATA]
+	ADD CONSTRAINT [R_1] FOREIGN KEY ([TagId]) REFERENCES [TAG_CONFIGURATION]([TagId])
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go

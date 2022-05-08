@@ -1,0 +1,15 @@
+CREATE PROCEDURE AlarmManagement  @TagId INTEGER, @Value FLOAT
+as 
+DECLARE @AlarmId INTEGER;
+DECLARE @AlarmType CHAR(18);
+DECLARE @AlarmTag INTEGER;
+DECLARE @AlarmValue FLOAT;
+
+SET @AlarmId = 1;
+WHILE (@AlarmId < (Select COUNT(*) FROM ALARM_CONFIGURATION))
+	BEGIN
+	IF (@TagId = (SELECT AlarmId FROM ALARM_CONFIGURATION WHERE AlarmId = @AlarmId))
+		BEGIN
+		EXEC AlarmCreate @AlarmId = @AlarmId;
+		END
+	END

@@ -1,0 +1,28 @@
+﻿@using DataAccesLib.Models
+@using BlazorDateRangePicker;
+
+<div class="btn-group">
+        <DateRangePicker placeholder="Velg Dato" @bind-StartDate="StartDate" @bind-EndDate="EndDate" OnRangeSelect="OnRangeSelect">
+
+        </DateRangePicker>
+    </div>
+
+    <input type="number" @bind-value="Queries.TableLen" @bind-value:event="oninput" />
+
+@code {
+    DateTimeOffset? StartDate { get; set; } = DateTime.Today.AddDays(-7);
+    DateTimeOffset? EndDate { get; set; } = DateTime.Today.AddDays(1).AddTicks(-1);
+    Queries query = new Queries();
+
+    [Parameter]
+    public EventCallback<string> rangeQuery { get; set; }
+
+
+    private async Task OnRangeSelect(DateRange _range)
+    {
+
+        string sql = query.DateQuery(_range);
+        await rangeQuery.InvokeAsync(sql);
+        
+    }
+}

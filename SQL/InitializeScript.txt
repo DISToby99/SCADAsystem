@@ -1,0 +1,94 @@
+CREATE PROCEDURE [dbo].[AlarmManagement]  @TagId INTEGER, @Value FLOAT
+as 
+DECLARE @AlarmId INTEGER;
+DECLARE @AlarmType CHAR(18);
+DECLARE @AlarmTag INTEGER;
+DECLARE @AlarmValue FLOAT;
+
+SET @AlarmId = 1;
+WHILE (@AlarmId < (Select COUNT(*) FROM ALARM_CONFIGURATION)+1)
+	BEGIN
+		
+	IF (@TagId = (SELECT AlarmId FROM ALARM_CONFIGURATION WHERE AlarmId = @AlarmId ))
+		BEGIN
+		if(@AlarmValue < @Value and 'High' = (SELECT AlarmType FROM ALARM_CONFIGURATION  WHERE AlarmId = @AlarmId))
+		EXEC AlarmCreate @AlarmId = @AlarmId;
+		END
+		Else if(@AlarmValue > @Value and 'Low' = (SELECT AlarmType FROM ALARM_CONFIGURATION  WHERE AlarmId = @AlarmId))
+		BEGIN
+		EXEC AlarmCreate @AlarmId = @AlarmId;
+		END
+
+
+	SET @AlarmId = @AlarmId + 1;
+	END
+
+
+CREATE PROCEDURE DataInsert @TagId INTEGER, @Value FLOAT
+as 
+DECLARE @RowCntAlarmConfig INTEGER = 0;
+DECLARE @RowCntAlarms INTEGER = 0;
+DECLARE @AlarmConfigID INTEGER = 1;
+--DECLARE @AlarmId INTEGER = 0;
+--DECLARE @AcknowledgeTimeStamp DATETIME = ;
+
+SELECT @RowCntAlarmConfig = COUNT(0) FROM ALARM_CONFIGURATION;
+SELECT @RowCntAlarms = COUNT(0) FROM ALARM_DATA;
+
+
+	INSERT INTO TAG_DATA (TimeStamp, Value, Quality, Status, TagId)
+	VALUES (GETDATE(), @Value, 1, 1, @TagId)
+
+	EXEC AlarmManagement @TagId = @TagId, @Value = @Value
+
+CREATE PROCEDURE [dbo].[AlarmCreate] @AlarmId INTEGER 
+as
+DECLARE @Operator char(30) = 'Brian';
+DECLARE @SeverityName char(18);
+DECLARE @Ack bit;
+DECLARE @AlarmIdCheck integer;
+
+
+--Fetch this from table
+SET @SeverityName = 'High';
+SET @AlarmIdCheck = (SELECT top 1 AlarmId FROM ALARM_DATA WHERE AlarmId = @AlarmId);
+SET @Ack = (SELECT top 1 Acknowledge FROM ALARM_DATA WHERE AlarmId = @AlarmId);
+IF (@AlarmId = @AlarmIdCheck and 1 = @Ack)
+
+BEGIN
+INSERT INTO ALARM_DATA (AlarmId, ActivationTimeStamp, AcknowledgeTimeStamp, Silence, SeverityName, Acknowledge, Active, AcknowledgeOperator)
+VALUES (@AlarmId, GETDATE(), GETDATE(),0, @SeverityName, 0, 1, '--');
+
+END
+--ELSE IF (@AlarmId != @AlarmIdCheck)
+ELSE IF(@AlarmIdCheck is NULL or @AlarmIdCheck <> @AlarmId)
+BEGIN
+
+INSERT INTO ALARM_DATA (AlarmId, ActivationTimeStamp, AcknowledgeTimeStamp, Silence, SeverityName, Acknowledge, Active, AcknowledgeOperator)
+VALUES (@AlarmId, GETDATE(), GETDATE(),0, @SeverityName, 0, 1, '--');
+END
+
+
+INSERT INTO SEVERITY_CONFIGURATION 
+VALUES	('clear', 0),
+		('Low', 100),
+		('Medium', 200),
+		('High', 300),
+		('Critical', 499);
+
+
+INSERT INTO ALARM_TYPE 
+VALUES	('High'),
+	('Low'),
+	('Low Low'),
+	('High High');
+
+
+
+INSERT INTO TAG_CONFIGURATION(TagId, TagName)
+VALUES(1, 'TempSensor');
+
+INSERT INTO TAG_CONFIGURATION(TagId, TagName)
+VALUES(2, 'Power');
+
+

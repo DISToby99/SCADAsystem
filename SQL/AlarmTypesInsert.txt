@@ -1,0 +1,5 @@
+INSERT INTO ALARM_TYPE 
+VALUES	('High'),
+	('Low'),
+	('Low Low'),
+	('High High');

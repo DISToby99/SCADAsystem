@@ -1,0 +1,171 @@
+﻿@page "/Alarms"
+
+@using DataAccesLib
+@using DataAccesLib.Models
+@using BlazorDateRangePicker;
+@using System.Diagnostics
+
+@inject IRecipeData _db
+@inject IConfiguration _config
+
+
+<h1>Alarms</h1>
+
+@*
+<h5 class ="mx-5">&nbsp;&nbsp;&nbsp; Dato &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Antall Rader</h5>
+
+
+
+
+
+ <TableSortComp rangeQuery="@UpdateDateRange"></TableSortComp>*@
+
+ @if(!AckAlarmFilter)
+ {
+<div class="btn-group  text-rt" role="group" aria-label="Reset">
+        
+        
+        <button type="button" class="btn btn-primary btn-lg text-right" @onclick="() => AlarmFilter(1)">Active Alarms</button>
+        <button type="button" class="btn btn-secondary btn-lg text-right" @onclick="() => AlarmFilter(2)">Acknowledged Alarms</button>
+    </div>
+
+ }
+ else
+ {
+     <div class="btn-group  text-rt" role="group" aria-label="Reset">
+        
+        
+        <button type="button" class="btn btn-secondary btn-lg text-right" @onclick="() => AlarmFilter(1)">Active Alarms</button>
+        <button type="button" class="btn btn-primary btn-lg text-right" @onclick="() => AlarmFilter(2)">Acknowledged Alarms</button>
+    </div>
+
+ }
+
+
+
+
+<Tables filter="@filter" TableType="@TableType"></Tables>
+
+@*<CsvAndResetComponent TableRestart="@UpdateResetTable"></CsvAndResetComponent>
+
+<FilterButtons FilterSort="@filter" FilterSortUpdate="@UpdateFilter"></FilterButtons>*@
+
+}
+
+
+
+@code {
+
+    private int TableLen = Queries.TableLen;
+
+    private int nColumns = 7;
+    private string TableType = "Alarms";
+    private List<AlarmData> AlarmList;
+    private bool AckAlarmFilter;
+    //private RecipeModels RecipeEdit = new RecipeModels();
+
+    public filtering[] filter = new filtering[7];
+    public DataFormatter format = new DataFormatter();
+    public List<List<string>> TableList = new List<List<string>>();
+
+
+    QueriesV1 query = new QueriesV1();
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        query.SetTableType(TableType);
+
+        for(int i = 0; i < nColumns; i++)
+        {
+            filter[i] = new filtering();
+            filter[i].variable = Extensions.AlarmDataExtensions[i];
+        }
+
+        TableUpdate();
+
+
+
+    }
+
+    public async void TableUpdate()
+    {
+
+
+        List<AlarmData> AlarmData = new List<AlarmData>();
+        AlarmData = await _db.GetAlarms(query.TableUpdate());
+        TableList = format.Alarms(AlarmData);
+        //Debug.WriteLine(TableList[0][0]);
+        RecipeRead.TableList = TableList;
+
+        try
+        {
+            StateHasChanged();
+        }
+        catch
+        {
+
+        }
+
+    }
+
+    private void UpdateFilter(filtering[] _filter)
+    {
+        filter = _filter;
+    }
+
+
+    private void UpdateDateRange(string sql)
+    {
+        TableUpdate();
+    }
+
+    private void UpdateResetTable(string sql)
+    {
+        TableUpdate();
+    }
+
+    private async void AlarmFilter(int n)
+    {
+        AckAlarmFilter = !AckAlarmFilter;
+        if (n == 1)
+        {
+            List<AlarmData> AlarmData = new List<AlarmData>();
+            AlarmData = await _db.GetAlarms(query.TableUpdate());
+            TableList = format.Alarms(AlarmData);
+            //Debug.WriteLine(TableList[0][0]);
+            RecipeRead.TableList = TableList;
+
+            try
+            {
+                StateHasChanged();
+            }
+            catch
+            {
+
+            }
+
+        }
+        else if (n == 2)
+        {
+            List<AlarmData> AlarmData = new List<AlarmData>();
+            AlarmData = await _db.GetAlarms(query.AlarmAckQuery());
+            TableList = format.Alarms(AlarmData);
+            //Debug.WriteLine(TableList[0][0]);
+            RecipeRead.TableList = TableList;
+
+            try
+            {
+                StateHasChanged();
+            }
+            catch
+            {
+
+            }
+        }
+
+
+    }
+}

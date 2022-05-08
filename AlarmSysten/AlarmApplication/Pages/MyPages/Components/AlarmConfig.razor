@@ -1,0 +1,103 @@
+﻿@page "/AlarmConfig"
+
+@using DataAccesLib
+@using DataAccesLib.Models
+@using BlazorDateRangePicker;
+@using System.Diagnostics
+
+@inject IRecipeData _db
+@inject IConfiguration _config
+
+
+<h1>Alarm Configuration</h1>
+
+
+<h5 class ="mx-5">&nbsp;&nbsp;&nbsp; Dato &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Antall Rader</h5>
+
+
+
+
+
+<Tables filter="@filter" TableType="@TableType"></Tables>
+
+@*<CsvAndResetComponent TableRestart="@UpdateResetTable"></CsvAndResetComponent>
+
+<FilterButtons FilterSort="@filter" FilterSortUpdate="@UpdateFilter"></FilterButtons>*@
+
+}
+
+
+
+@code {
+
+    private int TableLen = Queries.TableLen;
+
+    private int nColumns = 6;
+    private string TableType = "AlarmConfig";
+    private List<AlarmData> AlarmConfigList;
+    //private RecipeModels RecipeEdit = new RecipeModels();
+
+    public filtering[] filter = new filtering[6];
+    public DataFormatter format = new DataFormatter();
+    public List<List<string>> TableList = new List<List<string>>();
+
+
+    QueriesV1 query = new QueriesV1();
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        query.SetTableType(TableType);
+
+        for(int i = 0; i < nColumns; i++)
+        {
+            filter[i] = new filtering();
+            filter[i].variable = Extensions.AlarmConfigExtensions[i];
+        }
+
+        TableUpdate();
+
+       
+
+    }
+
+    public async void TableUpdate()
+    {
+
+        
+            List<AlarmConf> AlarmConfig = new List<AlarmConf>();
+            AlarmConfig = await _db.GetAlarmConfigs(query.TableUpdate());
+            TableList = format.AlarmConfig(AlarmConfig);
+            //Debug.WriteLine(TableList[0][0]);
+            RecipeRead.TableList = TableList;
+        
+        try
+        {
+            StateHasChanged();
+        }
+        catch
+        {
+            
+        }
+
+    }
+
+    private void UpdateFilter(filtering[] _filter)
+    {
+        filter = _filter;
+    }
+
+
+    private void UpdateDateRange(string sql)
+    {
+        TableUpdate();
+    }
+
+    private void UpdateResetTable(string sql)
+    {
+        TableUpdate();
+    }
+}
+

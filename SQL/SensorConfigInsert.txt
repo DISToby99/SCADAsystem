@@ -1,0 +1,5 @@
+INSERT INTO dbo.TAG_CONFIGURATION (TagId, TagName, Description)
+VALUES (1, 'IntakeTemp', 'Intake Temperature')
+
+INSERT INTO dbo.TAG_CONFIGURATION (TagId, TagName, Description)
+VALUES (2, 'OutletTemp', 'Outlet Temperature')

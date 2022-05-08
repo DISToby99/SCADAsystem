@@ -1,0 +1,11 @@
+CREATE PROCEDURE AlarmCreate @AlarmId INTEGER 
+as
+DECLARE @Operator char(30) = 'Brian';
+DECLARE @SeverityName char(18);
+DECLARE @Ack bit;
+
+--Fetch this from table
+SET @SeverityName = 'Brian';
+
+INSERT INTO ALARM_DATA (AlarmId, ActivationTimeStamp, AcknowledgeTimeStamp, Silence, SeverityName, Acknowledge, Active)
+VALUES (@AlarmId, GETDATE(), GETDATE(),0, @SeverityName, 0, 1);

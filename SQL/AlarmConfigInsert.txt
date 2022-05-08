@@ -1,0 +1,2 @@
+INSERT INTO ALARM_CONFIGURATION (AlarmId, SeverityName, TagId)
+VALUES	(1, 'Low', 1)

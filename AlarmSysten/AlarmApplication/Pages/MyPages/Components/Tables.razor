@@ -1,0 +1,284 @@
+﻿@using DataAccesLib.Models
+@using DataAccesLib
+@using BlazorDateRangePicker;
+@using System.Diagnostics
+@using System.Threading
+
+
+
+@inject IRecipeData _db
+
+
+@if (TableList is null)
+
+{
+    <p><em>Loading....</em></p>
+}
+else
+{
+
+  <div>
+      <table class="table table-striped">
+        <thead>
+            <tr>
+    
+                @foreach(var Var in filter)
+                    {
+                       @if(!Var.sort)
+                       {<th>@Var.variable</th>}
+                        
+                    }
+                
+
+            </tr>
+        </thead>
+        <tbody>
+                
+          @for(int n = 0; n < nRows; n++)
+                {
+                 
+                    @if (true)
+                    {
+                        <tr @key="RecipeRead.TableList[n]">
+                            @for (int i = 0; i < format.nColumns; i++)
+                            {
+                                @*@if (!filter[n].sort)
+                                {
+                                   
+                                    <td>@RecipeRead.TableList[n][i]</td>
+                                    
+                                }*@
+                                <td>@RecipeRead.TableList[n][i]</td>
+                            }
+                            @if (TableType == "Alarms")
+                            {
+
+
+                                @if (!AlarmData[n].Acknowledge)
+                                {
+                                    <th>
+                                        <button type="button" class="btn btn-link">
+                                            <span class="oi oi-task" aria-hidden="true" @onclick="() => AlarmAck(n)"></span>
+                                        </button>
+                                    </th>
+                                }
+                            }
+
+
+                        </tr>
+
+                    }
+                    else
+                    {
+                        @foreach(var Variable in TableEdit.Edits)
+                            {
+
+                            @if(!Variable.filter)
+                            {
+
+                                <td>
+                                <input type="text" class="form-control" @bind-value="@Variable.Name"/>
+                             
+                                </td>
+
+                            }
+                      
+                            }
+                            
+                    
+                    }
+                }
+
+
+      
+        </tbody>
+    </table>
+  </div>
+
+}
+
+@code {
+    public List<string> RecipeEdit;
+    private List<AlarmData> Alarms;
+    private int nRows = 0;
+    private bool tableLoaded;
+    private System.Threading.Timer timer1;
+
+    public List<List<string>> TableList = new List<List<string>>();
+    public List<AlarmData> AlarmData = new List<AlarmData>();
+
+    QueriesV1 query = new QueriesV1();
+    EditRow TableEdit = new EditRow { Edits = new List<EditInstance>() };
+
+
+    [Parameter]
+    public filtering[] filter {get;set;}
+    [Parameter]
+    public string TableType { get; set; }
+
+
+
+
+    public DataFormatter format = new DataFormatter();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Debug.WriteLine(TableType);
+        base.OnInitialized();
+
+        query.SetTableType(TableType);
+        AlarmData.Clear();
+
+      
+
+        while(true)
+        {
+            TableUpdate();
+            await Task.Delay(1000);
+            
+        }
+
+
+        
+
+
+
+
+    }
+
+
+
+    private void EnableEditing(bool flag, List<string> batch)
+    {
+
+        if(flag)
+        {
+
+            batch[format.nColumns+1] = "True";
+            RecipeEdit = batch;
+            flag = !flag;
+
+            List<EditInstance> _EditInstance = new List<EditInstance>();
+
+            for(int n = 0; n < format.nColumns; n++)
+            {
+                EditInstance _Entry = new EditInstance(){Name = batch[n], filter = filter[n].sort};
+
+                TableEdit.Edits.Add(_Entry);
+            }
+
+        }
+        else
+        {
+            batch[format.nColumns + 1] = "False";
+            TableEdit.Edits.Clear();
+        }
+
+        StateHasChanged();
+    }
+
+
+
+
+
+
+
+
+
+    public async void TableUpdate()
+    {
+
+
+
+
+        if (TableType == "Alarms")
+        {
+
+            //List<AlarmData> AlarmData = new List<AlarmData>();
+
+            AlarmData = await _db.GetAlarms(query.TableUpdate());
+
+            TableList = format.Alarms(AlarmData);
+
+            RecipeRead.TableList = TableList;
+
+            Debug.WriteLine(RecipeRead.TableList.Count + "Debug");
+            nRows = RecipeRead.TableList.Count;
+            List<bool>  AlarmAck = new List<bool>();
+            for(int n = 0; n < RecipeRead.TableList.Count()+1; n++)
+            {
+                AlarmAck.Add(true);
+                //Debug.WriteLine(AlarmAck.Count);
+            }
+            RecipeRead.AlarmAck = AlarmAck;
+
+
+
+        }
+        else if (TableType == "Tags")
+        {
+
+
+            List<TagLog> TagLog = new List<TagLog>();
+
+            TagLog = await _db.GetTags(query.TableUpdate());
+
+            TableList = format.Tags(TagLog);
+
+            RecipeRead.TableList = TableList;   
+            nRows = RecipeRead.TableList.Count - 1;
+            //Debug.WriteLine("EnteredTagPage" + RecipeRead.TableList[0][0]);
+        }
+        else if (TableType == "AlarmConfig")
+        {
+            Debug.WriteLine("DebugConfig");
+            List<AlarmConf> AlarmConfig = new List<AlarmConf>();
+
+            AlarmConfig = await _db.GetAlarmConfigs(query.TableUpdate());
+
+            TableList = format.AlarmConfig(AlarmConfig);
+
+            RecipeRead.TableList = TableList;
+            Debug.WriteLine(TableList[0][1] + "ConfigTest");
+            nRows = RecipeRead.TableList.Count;
+
+        }
+
+        try
+        {
+            StateHasChanged();
+        }
+        catch
+        {
+
+        }StateHasChanged();
+    }
+
+
+
+    //public void FilterUpdate()
+    //{
+    //    for(int n = 0; n < format.nColumns - 1; n++)
+    //    {
+    //        FilterModel.filter[n] = filter[n].sort;
+    //    }
+    //}
+
+
+    public async void AlarmAck(int n)
+    {
+        RecipeRead.AlarmAck[n] = !RecipeRead.AlarmAck[n];
+      
+
+        string sql = query.AlarmAck(AlarmData[n-1].AlarmId, AlarmData[n-1].ActivationTimeStamp);
+        Debug.WriteLine(n+": ack: " + sql);
+        await _db.EditRecipe(sql);
+
+        StateHasChanged();
+    }
+
+
+   
+
+    }
